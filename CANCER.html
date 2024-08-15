@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cancer Map Application - Kenya</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 600px; width: 100%; }
+        .info { padding: 6px 8px; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; }
+        .legend { background: white; line-height: 1.5em; padding: 6px 8px; }
+        .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <h1>Cancer Map Application - Kenya</h1>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([1.2921, 36.8219], 6); // Centered on Nairobi, Kenya
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Cancer data
+        var cancerData = {
+            "type": "FeatureCollection",
+            "features": [
+                {"type": "Feature", "properties": {"cancer_type": "Breast Cancer", "cases": 4465, "deaths": 524, "region": "Nairobi"}, "geometry": {"type": "Point", "coordinates": [36.8219, -1.2921]}},
+                {"type": "Feature", "properties": {"cancer_type": "Cervix Uteri Cancer", "cases": 5985, "deaths": 673, "region": "Central Kenya"}, "geometry": {"type": "Point", "coordinates": [37.9062, -0.0236]}},
+                {"type": "Feature", "properties": {"cancer_type": "Colorectal Cancer", "cases": 2200, "deaths": 400, "region": "Urban Regions"}, "geometry": {"type": "Point", "coordinates": [36.8219, -1.2921]}},
+                {"type": "Feature", "properties": {"cancer_type": "Kaposi Sarcoma", "cases": 1500, "deaths": 300, "region": "Western Kenya"}, "geometry": {"type": "Point", "coordinates": [34.7617, 0.0716]}},
+                {"type": "Feature", "properties": {"cancer_type": "Leukemia", "cases": 1800, "deaths": 350, "region": "National"}, "geometry": {"type": "Point", "coordinates": [36.8219, -1.2921]}},
+                {"type": "Feature", "properties": {"cancer_type": "Liver Cancer", "cases": 2100, "deaths": 600, "region": "Coastal Regions"}, "geometry": {"type": "Point", "coordinates": [39.6682, -4.0435]}},
+                {"type": "Feature", "properties": {"cancer_type": "Non-Hodgkin Lymphoma", "cases": 1700, "deaths": 450, "region": "National"}, "geometry": {"type": "Point", "coordinates": [36.8219, -1.2921]}},
+                {"type": "Feature", "properties": {"cancer_type": "Oesophagus Cancer", "cases": 2800, "deaths": 900, "region": "Central and Coastal Kenya"}, "geometry": {"type": "Point", "coordinates": [37.9062, -0.0236]}},
+                {"type": "Feature", "properties": {"cancer_type": "Prostate Cancer", "cases": 3500, "deaths": 1000, "region": "Nairobi"}, "geometry": {"type": "Point", "coordinates": [36.8219, -1.2921]}},
+                {"type": "Feature", "properties": {"cancer_type": "Stomach Cancer", "cases": 2000, "deaths": 700, "region": "National"}, "geometry": {"type": "Point", "coordinates": [36.8219, -1.2921]}}
+            ]
+        };
+
+        // Define colors for each cancer type
+        function getColor(cancerType) {
+            switch (cancerType) {
+                case 'Breast Cancer': return '#e41a1c';
+                case 'Cervix Uteri Cancer': return '#377eb8';
+                case 'Colorectal Cancer': return '#4daf4a';
+                case 'Kaposi Sarcoma': return '#984ea3';
+                case 'Leukemia': return '#ff7f00';
+                case 'Liver Cancer': return '#ffff33';
+                case 'Non-Hodgkin Lymphoma': return '#a65628';
+                case 'Oesophagus Cancer': return '#f781bf';
+                case 'Prostate Cancer': return '#999999';
+                case 'Stomach Cancer': return '#377eb8';
+                default: return '#000000'; // Default black for unknown types
+            }
+        }
+
+        // Function to style the GeoJSON points
+        function style(feature) {
+            return {
+                radius: 8,
+                fillColor: getColor(feature.properties.cancer_type),
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            };
+        }
+
+        function onEachFeature(feature, layer) {
+            if (feature.properties) {
+                layer.bindPopup(
+                    '<b>Cancer Type:</b> ' + feature.properties.cancer_type +
+                    '<br><b>Cases:</b> ' + feature.properties.cases +
+                    '<br><b>Deaths:</b> ' + feature.properties.deaths +
+                    '<br><b>Region:</b> ' + feature.properties.region
+                );
+            }
+        }
+
+        L.geoJSON(cancerData, {
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, style(feature));
+            },
+            onEachFeature: onEachFeature
+        }).addTo(map);
+
+        // Add legend to the map
+        var legend = L.control({ position: 'bottomright' });
+
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'legend'),
+                cancerTypes = ['Breast Cancer', 'Cervix Uteri Cancer', 'Colorectal Cancer', 'Kaposi Sarcoma', 'Leukemia', 'Liver Cancer', 'Non-Hodgkin Lymphoma', 'Oesophagus Cancer', 'Prostate Cancer', 'Stomach Cancer'],
+                labels = [];
+
+            // Loop through cancer types and generate a label with a colored square for each
+            for (var i = 0; i < cancerTypes.length; i++) {
+                div.innerHTML +=
+                    '<i style="background:' + getColor(cancerTypes[i]) + '"></i> ' +
+                    cancerTypes[i] + '<br>';
+            }
+
+            return div;
+        };
+
+        legend.addTo(map);
+
+    </script>
+</body>
+</html>
